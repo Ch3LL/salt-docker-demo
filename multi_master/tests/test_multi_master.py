@@ -20,7 +20,10 @@ def docker_compose_files(pytestconfig):
     ]
 
 
-def test_something(start_container):
+def test_multi_master(start_container):
+    '''
+    test multi-master when both masters are running
+    '''
     master1 = start_container('master1')
     master2 = start_container('master2')
     minion1 = start_container('minion1')
