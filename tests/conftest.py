@@ -1,8 +1,8 @@
-import docker
 import os
 import pytest
 import time
 
+from utils import docker_client
 
 @pytest.fixture(scope='function')
 def start_container(docker_services):
@@ -21,8 +21,18 @@ def start_container(docker_services):
             if 'True' not in ret:
                 raise Exception('Service on {0} did not start'.format(salt_host))
 
-        # get docker container id
-        client = docker.from_env()
-        salt_host = client.containers.list(filters={'name': salt_host})[0]
-        return salt_host
+        return True
     return _start_salt_host
+
+@pytest.fixture()
+def edit_config():
+    def _edit_salt_config(salt_host, conf, content, service):
+        '''
+        edit a salt config and restart service
+        '''
+        host = docker_client(salt_host)
+        host.exec_run('pkill {0}'.format(service))
+        host.exec_run('salt-call --local file.append {0} "{1}"'.format(conf, content))
+        host.exec_run('{0} -d'.format(service))
+        time.sleep(20)
+    return _edit_salt_config

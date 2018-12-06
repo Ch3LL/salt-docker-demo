@@ -1,4 +1,4 @@
-FROM salt-manual-image
+FROM salt-muti-master-image
 
 ADD master /etc/salt/master
 ADD master_minion.pem /etc/salt/pki/master.pem
