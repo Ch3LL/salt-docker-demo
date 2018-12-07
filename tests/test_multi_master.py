@@ -15,14 +15,19 @@ def docker_compose_files(pytestconfig):
         os.path.join(root_dir, 'multi_master', 'docker-compose.yml'),
     ]
 
-@pytest.fixture(scope='function')
-def start_multi_master(start_container, docker_services):
-    start_container('master1')
-    time.sleep(5)
-    start_container('master2')
-    time.sleep(5)
-    start_container('minion1', cmd=['salt-call', 'test.ping'])
-    time.sleep(5)
+@pytest.fixture(scope="function",
+                params=['zeromq', 'tcp'])
+def start_multi_master(request, edit_config, start_container, docker_services):
+    for host in ['master1', 'master2', 'minion1']:
+        service = host[:-1]
+        if service == 'minion':
+            start_container(host, cmd=['salt-call', 'test.ping'])
+        else:
+            start_container(host)
+        time.sleep(5)
+        if request.param != 'zeromq':
+            edit_config(host, '/etc/salt/{0}'.format(service),
+                        'transport: {0}'.format(request.param), 'salt-{0}'.format(service))
     yield
     docker_services.shutdown()
 

@@ -34,5 +34,5 @@ def edit_config():
         host.exec_run('pkill {0}'.format(service))
         host.exec_run('salt-call --local file.append {0} "{1}"'.format(conf, content))
         host.exec_run('{0} -d'.format(service))
-        time.sleep(20)
+        time.sleep(40)
     return _edit_salt_config
