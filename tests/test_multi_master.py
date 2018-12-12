@@ -25,6 +25,7 @@ def start_multi_master(request, build_image, edit_config, start_container, docke
             start_container(host, cmd=['salt-call', 'test.ping'])
         else:
             start_container(host)
+        time.sleep(40)
     yield
     docker_services.shutdown()
 
@@ -32,12 +33,15 @@ def test_multi_master(request, start_multi_master):
     '''
     test multi-master when both masters are running
     '''
-#    pre_version = ' '.join([x for x in request.keywords.keys() if x.startswith('v20')]).strip('v')
-    import pudb;pu.db
+    transport = ' '.join([x for x in request.keywords.keys() if x.startswith('test_')]).split('[')[-1].strip(']')
     for master in ['master1', 'master2']:
         salt_host = docker_client(master)
         ret = salt_host.exec_run('salt * test.ping')
         assert ret.exit_code == 0
+
+        # verify we are using correct transport
+        ret = salt_host.exec_run('salt * config.get transport')
+        assert transport in str(ret.output)
 
 def test_multi_first_master(start_multi_master):
     '''

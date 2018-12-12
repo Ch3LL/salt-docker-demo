@@ -48,7 +48,6 @@ def test_upgrade_versions(request, start_master_minion):
                     conf = os.path.join('etc', 'salt', 'minion')
 
                 # add test config
-                import pudb; pu.db
                 salt_host.exec_run('salt-call --local file.append {0} "{1}"'.format(conf, 'test_exist: True'))
                 ret = salt_host.exec_run('salt-call --local file.contains {0} test_exist'.format(conf))
                 assert 'True' in ret
