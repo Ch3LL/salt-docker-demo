@@ -1,3 +1,4 @@
+import docker
 import os
 import pytest
 import time
@@ -34,5 +35,13 @@ def edit_config():
         host.exec_run('pkill {0}'.format(service))
         host.exec_run('salt-call --local file.append {0} "{1}"'.format(conf, content))
         host.exec_run('{0} -d'.format(service))
-        time.sleep(40)
+        time.sleep(100)
     return _edit_salt_config
+
+@pytest.fixture('module')
+def build_image():
+    def _build_salt_image(name, path, buildargs):
+        client = docker.from_env()
+        ret = client.images.build(path=path, tag=name, buildargs=buildargs,
+                                  nocache=True)
+    return _build_salt_image

@@ -1,0 +1,56 @@
+version: '2'
+services:
+  master1:
+    hostname: master1
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      container: docker
+    command: /usr/sbin/init
+    build:
+      context: saltstack/master/
+      args:
+         TRANSPORT: tcp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - ./saltstack/salt:/srv/salt
+      - ./saltstack/pillar:/srv/pillar
+    networks:
+      - salt
+  master2:
+    hostname: master2
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      container: docker
+    command: /usr/sbin/init
+    build:
+      context: saltstack/master2/
+      args:
+         TRANSPORT: tcp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - ./saltstack/salt:/srv/salt
+      - ./saltstack/pillar:/srv/pillar
+    networks:
+      - salt
+  minion1:
+    hostname: minion1
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      container: docker
+    command: /usr/sbin/init
+    build:
+      context: saltstack/minion1/
+      args:
+         TRANSPORT: tcp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    networks:
+      - salt
+networks:
+  salt:
