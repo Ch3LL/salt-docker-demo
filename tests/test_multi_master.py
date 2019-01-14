@@ -5,40 +5,43 @@ import time
 
 from utils import docker_client
 
-@pytest.fixture(scope='session')
-def docker_compose_files(pytestconfig):
+@pytest.fixture(scope='session',
+                params=['tcp', 'zeromq'])
+def docker_compose_files(request, pytestconfig):
     '''
     specify docker-compose.yml if not in tests directory
     '''
     root_dir = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
-    return [
-        os.path.join(root_dir, 'multi_master', 'docker-compose.yml'),
-    ]
+    dc_file = os.path.join(root_dir, 'multi_master', 'docker-compose.yml')
+    if request.param == 'tcp':
+        dc_file = os.path.join(root_dir, 'multi_master', 'docker-compose-tcp.yml')
+    return [dc_file]
 
-@pytest.fixture(scope="function",
-                params=['zeromq', 'tcp'])
-def start_multi_master(request, edit_config, start_container, docker_services):
+@pytest.fixture(scope="function")
+def start_multi_master(request, build_image, edit_config, start_container, docker_services):
     for host in ['master1', 'master2', 'minion1']:
         service = host[:-1]
         if service == 'minion':
             start_container(host, cmd=['salt-call', 'test.ping'])
         else:
             start_container(host)
-        time.sleep(5)
-        if request.param != 'zeromq':
-            edit_config(host, '/etc/salt/{0}'.format(service),
-                        'transport: {0}'.format(request.param), 'salt-{0}'.format(service))
+        time.sleep(40)
     yield
     docker_services.shutdown()
 
-def test_multi_master(start_multi_master):
+def test_multi_master(request, start_multi_master):
     '''
     test multi-master when both masters are running
     '''
+    transport = ' '.join([x for x in request.keywords.keys() if x.startswith('test_')]).split('[')[-1].strip(']')
     for master in ['master1', 'master2']:
         salt_host = docker_client(master)
         ret = salt_host.exec_run('salt * test.ping')
         assert ret.exit_code == 0
+
+        # verify we are using correct transport
+        ret = salt_host.exec_run('salt * config.get transport')
+        assert transport in str(ret.output)
 
 def test_multi_first_master(start_multi_master):
     '''
@@ -207,4 +210,4 @@ def test_masters_down_minion_cmd(start_multi_master):
 
     minion1 = docker_client('minion1')
     ret = minion1.exec_run('salt-call test.ping')
-    assert b'No master could be reached' in test.output
+    assert b'No master could be reached' in ret.output
