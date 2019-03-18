@@ -1,4 +1,4 @@
-FROM salt-muti-master-image
+FROM salt-multi-master-image
 ARG TRANSPORT
 
 ADD master /etc/salt/master
