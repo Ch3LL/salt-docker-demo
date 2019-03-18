@@ -1,4 +1,4 @@
-FROM salt-muti-master-image
+FROM salt-multi-master-image
 
 EXPOSE 8000
 

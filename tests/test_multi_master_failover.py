@@ -103,8 +103,6 @@ def test_multi_master_failover_stop_second_master(start_multi_master):
     ret = master1.exec_run('salt * test.ping')
     assert b'The master is not responding' in ret.output
 
-# marking xfail until this issue is fixed: 50791
-@pytest.mark.xfail
 def test_multi_master_failover_restart_both_masters(start_multi_master):
     '''
     test multi-master failover when both masters are restarted
@@ -154,8 +152,6 @@ def test_multi_master_failover_stop_first_master(start_multi_master):
     ret = master1.exec_run('salt * test.ping')
     assert b'The master is not responding' in ret.output
 
-# marking xfail until this issue is fixed: 50791
-@pytest.mark.xfail
 def test_multi_master_failover_masters_stopped_on_start(start_multi_master):
     '''
     test multi-master failover when both masters are stopped
